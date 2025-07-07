@@ -66,7 +66,7 @@ export default function DroppableList({ list }: { list: List }) {
         () =>
             debounce((value: string) => {
                 updateAddingCardTask(value);
-            }, 100),
+            },50),
         [updateAddingCardTask]
     );
     // update title every time something is written
@@ -135,7 +135,6 @@ export default function DroppableList({ list }: { list: List }) {
             ) : (
                 <div
                     className="p-1 cursor-pointer"
-                // onClick={(e) => SetEditingTitleListField(true)}
                 >
                     <Input
                         readOnly={false}
@@ -157,7 +156,7 @@ export default function DroppableList({ list }: { list: List }) {
             )}
 
             {list.tasks.map((task: Task) => (
-                <TaskDragable key={`${task.id}`} task={task} />
+                <TaskDragable key={`${task.id}`} task={task} listId={list.id} />
             ))}
             {!addNewCard &&
                 (addNewCardTaskList === null ||
@@ -180,6 +179,7 @@ export default function DroppableList({ list }: { list: List }) {
             {addNewCard || addNewCardTaskList?.belongListId === list.id ? (
                 <div className={` p-1 cursor-pointer transform `}>
                     <Textarea
+                        autoFocus
                         onChange={(e) => {
                             debouncedUpdate(e.target.value); // call to  updateAddingCardTask
                         }}

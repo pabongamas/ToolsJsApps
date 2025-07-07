@@ -11,7 +11,10 @@ interface ListTaskContextValue {
   updateAddingCardTask: (text: string) => void
   stopAddingCardTask: () => void;
   addNewTaskToListByCard: () => void;
-  editTitleList:(ListEdit:List,newTitle:string)=>void;
+  editTitleList: (ListEdit: List, newTitle: string) => void;
+  updateStateTask: (task: Task, newState: boolean, listId?: string) => void;
+  taskToOpenDialog:Task|null;
+  setTaskToDialog:(task:Task|null)=>void;
 }
 const initialLists: List[] = [
   {
@@ -84,6 +87,9 @@ const ListTaskContext = createContext<ListTaskContextValue | undefined>(
 );
 
 export function ListTaskProvider({ children }: { children: ReactNode }) {
+  const [taskToOpenDialog, setTaskToOpenDialog] = useState<Task | null>(null)
+  const setTaskToDialog = (task: Task|null) => setTaskToOpenDialog(task);
+
   //use state to control the data in all the context ,this can be obteined in every component that is in the context
   const [lists, setLists] = useState<List[]>(initialLists);
   const updateLists = (lists: List[]) => setLists(lists);
@@ -118,10 +124,26 @@ export function ListTaskProvider({ children }: { children: ReactNode }) {
 
     stopAddingCardTask();
   };
-  const editTitleList = (listEdit:List, newTitle:string) => {
+  const editTitleList = (listEdit: List, newTitle: string) => {
     setLists((prevList) =>
       prevList.map((list) =>
         list.id === listEdit.id ? { ...list, title: newTitle } : list
+      ))
+  }
+
+  const updateStateTask = (taskEdit: Task, newState: boolean, listId?: string) => {
+    setLists((prevList) =>
+      prevList.map((list) =>
+        list.id === listId
+          ? {
+            ...list,
+            tasks: list.tasks.map(task =>
+              task.id === taskEdit.id
+                ? { ...task, completed: newState }
+                : task
+            ),
+          }
+          : list
       ))
   }
 
@@ -136,6 +158,9 @@ export function ListTaskProvider({ children }: { children: ReactNode }) {
         stopAddingCardTask,
         addNewTaskToListByCard,
         editTitleList,
+        updateStateTask,
+        taskToOpenDialog,
+        setTaskToDialog
       }}
     >
       {children}

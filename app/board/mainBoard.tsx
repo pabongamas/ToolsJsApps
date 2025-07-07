@@ -25,10 +25,11 @@ import { Button } from "@/components/ui/button";
 import { useListTaskContext } from "../contexts/ListTaskContext";
 import { v4 as uuidv4 } from "uuid";
 import { PlusIcon } from "@heroicons/react/24/outline";
+import DialogOpenTask from "../components/dialogs/DialogOpenTask";
 
 
 export default function MainBoard() {
-    const { lists, updateLists } = useListTaskContext();
+    const { lists, updateLists, taskToOpenDialog } = useListTaskContext();
     const [activeTask, setActiveTask] = useState<Task | null>(null);
     const [activeList, setActiveList] = useState<List | null>(null);
 
@@ -74,7 +75,7 @@ export default function MainBoard() {
                             <SortableList key={list.id} list={list} />
                         ))}
                         <div onClick={(e) => newElement()}
-                         className={`flex-none cursor-grab transform w-[200px]
+                            className={`flex-none cursor-grab transform w-[200px]
                            p-2 rounded-md  bg-blue-400 brightness-[0.9] text-white `}>
                             <div className="flex gap-1 justify-center text-sm">
                                 <PlusIcon className="w-5" />
@@ -95,6 +96,9 @@ export default function MainBoard() {
                         ) : null}
                     </DragOverlay>
                 </DndContext>
+                {taskToOpenDialog &&
+                    <DialogOpenTask taskToOpenDialog={taskToOpenDialog} />
+                }
             </div>
         </div>
     );
