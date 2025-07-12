@@ -66,7 +66,7 @@ export default function MainBoard() {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
         }} className={`w-full sm:w-6/12 md:w-10/12   flex flex-col  rounded-2xl`}>
-            <HeaderBoard />
+            <HeaderBoard boardLoaded={board} />
             <div className={`flex-1 overflow-x-auto `}>
                 <div className="flex items-start gap-5 p-5">
                     <DndContext
