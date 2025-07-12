@@ -1,6 +1,6 @@
 "use client";
 import { useDraggable } from "@dnd-kit/core";
-import { Task } from "../types/typesBoard";
+import { Task } from "../../types/typesBoard";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CheckIcon } from "@heroicons/react/24/outline";
@@ -10,8 +10,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useListTaskContext } from "../contexts/ListTaskContext";
-import DialogOpenTask from "./dialogs/DialogOpenTask";
+import { useListTaskContext } from "../../contexts/ListTaskContext";
+import DialogOpenTask from "../dialogs/DialogOpenTask";
 
 export default function TaskDragable({
   task,
@@ -45,7 +45,7 @@ export default function TaskDragable({
   };
 
   const baseDot =
-    "w-3 h-3 mr-1 rounded-full transition-colors duration-1000 ease-in-out cursor-pointer";
+    "w-3 h-3 mr-1 rounded-full transition-colors duration-1000 ease-in-out cursor-pointer z-40"
   const completedDot = "bg-green-500";
   const hoverDot = "bg-white border border-gray-400";
   return (
@@ -64,7 +64,7 @@ export default function TaskDragable({
         className="border-2 p-1 pl-2 bg-white border-white shadow-gray-400  shadow-sm rounded-md"
         onMouseEnter={() => setIsHoveredTask(true)}
         onMouseLeave={() => setIsHoveredTask(false)}
-        onClick={() => setTaskToDialog(task)}
+        
       >
         <div className="flex items-center">
           <div
@@ -79,7 +79,7 @@ export default function TaskDragable({
               </div>
             )}
           </div>
-          <span className="transition-all duration-1000 ease-in-out">
+          <span onClick={() => setTaskToDialog(task)} className="transition-all duration-1000 ease-in-out">
             {task.title}
           </span>
         </div>

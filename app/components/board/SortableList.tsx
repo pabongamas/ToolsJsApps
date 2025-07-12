@@ -3,7 +3,7 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { List } from "../types/typesBoard";
+import { List } from "../../types/typesBoard";
 import DroppableList from "./DroppableList";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -27,11 +27,10 @@ export default function SortableList({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    backgroundColor: list.color,
   };
   return (
     <div
-      className={`flex-none cursor-grab transform w-[200px]  p-4 rounded-md ${
+      className={`bg-${list.color}App-50 flex-none cursor-grab transform w-[200px]  p-2 rounded-md ${
         itsOverlay ? "rotate-6" : ""
       }`}
       ref={setNodeRef}

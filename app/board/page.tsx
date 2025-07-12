@@ -6,7 +6,7 @@ export default function Board() {
   return (
     <>
       <ListTaskProvider>
-        <div className="flex w-full h-screen">
+        <div className="flex w-full h-screen p-5 gap-3">
           <LeftBar />
           <MainBoard />
         </div>

@@ -1,9 +1,12 @@
 "use client";
 import { createContext, ReactNode, useContext, useState } from "react";
-import { List, Task } from "../types/typesBoard";
+import { List, Task, Board } from "../types/typesBoard";
 import { v4 as uuidv4 } from "uuid";
 
 interface ListTaskContextValue {
+  board: Board;
+  updateBoard: (board: Board) => void;
+  updateBoardObj: (changes: Partial<Board>) => void;
   lists: List[];
   updateLists: (lists: List[]) => void;
   addNewCardTaskList: Task | null;
@@ -11,16 +14,16 @@ interface ListTaskContextValue {
   updateAddingCardTask: (text: string) => void
   stopAddingCardTask: () => void;
   addNewTaskToListByCard: () => void;
-  editTitleList: (ListEdit: List, newTitle: string) => void;
+  updateList: (ListEdit: List, changes: Partial<List>) => void;
   updateStateTask: (task: Task, newState: boolean, listId?: string) => void;
-  taskToOpenDialog:Task|null;
-  setTaskToDialog:(task:Task|null)=>void;
+  taskToOpenDialog: Task | null;
+  setTaskToDialog: (task: Task | null) => void;
 }
 const initialLists: List[] = [
   {
     id: `listToday-${uuidv4()}`,
     title: "Today",
-    color: "#ccc",
+    color: "purple",
     tasks: [
       {
         id: `taskToday-${uuidv4()}`,
@@ -45,7 +48,7 @@ const initialLists: List[] = [
   {
     id: `listWeek-${uuidv4()}`,
     title: "this Week",
-    color: "#F8E6A0",
+    color: "red",
     tasks: [
       {
         id: `taskWeek-${uuidv4()}`,
@@ -70,7 +73,7 @@ const initialLists: List[] = [
   {
     id: `listLater-${uuidv4()}`,
     title: "Later",
-    color: "#BAF3DB",
+    color: "yellow",
     tasks: [
       {
         id: `taskLater-${uuidv4()}`,
@@ -81,18 +84,29 @@ const initialLists: List[] = [
     ],
   },
 ];
+const boardInitial: Board = {
+  id: `board-${uuidv4()}`,
+  color: "ocean",
+  title: "My trello Board",
+  lists: initialLists
+}
 
 const ListTaskContext = createContext<ListTaskContextValue | undefined>(
   undefined
 );
 
 export function ListTaskProvider({ children }: { children: ReactNode }) {
+
   const [taskToOpenDialog, setTaskToOpenDialog] = useState<Task | null>(null)
-  const setTaskToDialog = (task: Task|null) => setTaskToOpenDialog(task);
+  const setTaskToDialog = (task: Task | null) => setTaskToOpenDialog(task);
 
   //use state to control the data in all the context ,this can be obteined in every component that is in the context
   const [lists, setLists] = useState<List[]>(initialLists);
   const updateLists = (lists: List[]) => setLists(lists);
+
+
+  const [board, setBoard] = useState<Board>(boardInitial);
+  const updateBoard = (board: Board) => setBoard(board);
 
   //state to control when its gonna create a new card and the user wants to move elements with dragoverlay,
   // full implementation in DroppableList
@@ -114,42 +128,55 @@ export function ListTaskProvider({ children }: { children: ReactNode }) {
 
   const addNewTaskToListByCard = () => {
     if (!addNewCardTaskList) return;
-    setLists((prevLists) =>
-      prevLists.map((list) =>
+    updateBoardObj({
+      lists: board.lists.map(list =>
         list.id === addNewCardTaskList.belongListId
           ? { ...list, tasks: [...list.tasks, addNewCardTaskList] }
           : list
       )
-    );
+    })
 
     stopAddingCardTask();
   };
-  const editTitleList = (listEdit: List, newTitle: string) => {
-    setLists((prevList) =>
-      prevList.map((list) =>
-        list.id === listEdit.id ? { ...list, title: newTitle } : list
-      ))
+  const updateList = (listEdit: List, changes: Partial<List>) => {
+    updateBoardObj({
+      lists: board.lists.map(list =>
+        list.id === listEdit.id
+          ? { ...list, ...changes }
+          : list
+      )
+    });
   }
 
   const updateStateTask = (taskEdit: Task, newState: boolean, listId?: string) => {
-    setLists((prevList) =>
-      prevList.map((list) =>
+    updateBoardObj({
+      lists: board.lists.map(list =>
         list.id === listId
           ? {
-            ...list,
-            tasks: list.tasks.map(task =>
+            ...list, tasks: list.tasks.map(task =>
               task.id === taskEdit.id
                 ? { ...task, completed: newState }
                 : task
             ),
           }
           : list
-      ))
+      )
+    });
   }
+
+  const updateBoardObj = (changes: Partial<Board>) => {
+    setBoard(prevBoard => ({
+      ...prevBoard,
+      ...changes,
+    }));
+  };
 
   return (
     <ListTaskContext.Provider
       value={{
+        board,
+        updateBoard,
+        updateBoardObj,
         lists,
         updateLists,
         addNewCardTaskList,
@@ -157,10 +184,10 @@ export function ListTaskProvider({ children }: { children: ReactNode }) {
         updateAddingCardTask,
         stopAddingCardTask,
         addNewTaskToListByCard,
-        editTitleList,
+        updateList,
         updateStateTask,
         taskToOpenDialog,
-        setTaskToDialog
+        setTaskToDialog,
       }}
     >
       {children}

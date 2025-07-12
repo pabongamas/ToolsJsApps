@@ -11,4 +11,10 @@ type List={
     tasks:Task[];
     color:string
 }
-export type {Task,List}
+type Board={
+    id:string;
+    title:string;
+    lists:List[];
+    color:string;
+}
+export type {List,Task,Board}

@@ -1,12 +1,12 @@
 "use client";
 import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
-import { List, Task } from "../types/typesBoard";
+import { Board, List, Task } from "../types/typesBoard";
 import { arrayMove } from "@dnd-kit/sortable";
 
 function DragEndInList(
     event: DragEndEvent,
-    lists: List[],
-    setLists: (lists: List[]) => void,
+    board: Board,
+    updateBoardObj: (changes: Partial<Board>) => void,
     setActiveTask: (task: Task | null) => void,
     setActiveList: (list: List | null) => void
 ) {
@@ -28,13 +28,16 @@ function DragEndInList(
 
     if (isDraggingList && isOverList) {
         // estás moviendo listas
-        const oldIndex = lists.findIndex((list) => list.id === active.id);
-        const newIndex = lists.findIndex((list) => list.id === over.id);
+        const oldIndex = board.lists.findIndex((list) => list.id === active.id);
+        const newIndex = board.lists.findIndex((list) => list.id === over.id);
 
 
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-            const reordered = arrayMove(lists, oldIndex, newIndex);
-            setLists(reordered);
+            const reordered = arrayMove(board.lists, oldIndex, newIndex);
+            // setLists(reordered);
+            updateBoardObj({
+                lists: reordered,
+            });
         }
         return;
     }
@@ -42,7 +45,7 @@ function DragEndInList(
     let sourceListIndex = -1;
     let destinationListIndex = -1;
     // iterate list
-    lists.forEach((list, index) => {
+    board.lists.forEach((list, index) => {
         // find the task in the list to know where is the source list
         //active id is   the ref that is used in taskDragable
         if (list.tasks.find((task) => task.id === activeId)) {
@@ -65,7 +68,7 @@ function DragEndInList(
         // move inside of the same list
 
         //get the list source
-        const list = lists[sourceListIndex];
+        const list = board.lists[sourceListIndex];
 
         //source index its gonne be the old index ,will be changed to new index
         const oldIndex = list.tasks.findIndex((task) => task.id === activeId);
@@ -76,17 +79,21 @@ function DragEndInList(
         const updatedTasks = arrayMove(list.tasks, oldIndex, newIndex);
 
         //get all lists
-        const updatedLists = [...lists];
+        const updatedLists = [...board.lists];
         //and replace in the espcefific list ,in this case the source list , and remplace task for the
         //updatedTasks with data already ordered
         updatedLists[sourceListIndex] = { ...list, tasks: updatedTasks };
 
         //set data
-        setLists(updatedLists);
+
+        updateBoardObj({
+            lists: updatedLists,
+        });
+        // setLists(updatedLists);
     } else {
         // move between different list , get the lists from  the source and destination
-        const sourceList = lists[sourceListIndex];
-        const destinationList = lists[destinationListIndex];
+        const sourceList = board.lists[sourceListIndex];
+        const destinationList = board.lists[destinationListIndex];
 
         //find the task to move , must be searched within the sorce list ,where task,id equals to activeId(task that
         // is movingk)
@@ -114,7 +121,7 @@ function DragEndInList(
         }
 
         //get the lists in initial state
-        const updatedLists = [...lists];
+        const updatedLists = [...board.lists];
         //and update list in the position sourcelistindex ,its only modified the tasks
         //its replaced with the different tasks instead the task that is moving
         updatedLists[sourceListIndex] = {
@@ -127,7 +134,10 @@ function DragEndInList(
             ...destinationList,
             tasks: updatedDestinationTasks,
         };
-        setLists(updatedLists);
+        // setLists(updatedLists);
+        updateBoardObj({
+            lists: updatedLists,  // <-- aquí también
+        });
     }
 
     setActiveTask(null);
@@ -135,7 +145,7 @@ function DragEndInList(
 }
 function handleDragStart(
     event: DragStartEvent,
-    lists: List[],
+    board: Board,
     setActiveTask: (task: Task | null) => void,
     setActiveList: (list: List | null) => void
 ) {
@@ -144,13 +154,13 @@ function handleDragStart(
 
     if (typeof active.id === "string" && active.id.startsWith("task")) {
         const taskId = active.id
-        const task = lists.flatMap((l) => l.tasks).find((t) => t.id === taskId);
+        const task = board.lists.flatMap((l) => l.tasks).find((t) => t.id === taskId);
         setActiveTask(task || null);
     }
 
     if (typeof active.id === "string" && active.id.startsWith("list")) {
         const listId = active.id
-        const list = lists.find((l) => l.id === listId);
+        const list = board.lists.find((l) => l.id === listId);
         setActiveList(list || null);
     }
 
