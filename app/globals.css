@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@import '../styles/_variables.scss';
+@import '../styles/_keyframe-animations.scss';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -62,6 +65,7 @@
   --color-magentaApp-100: #F797D2;
   --color-grayApp-50: #8590A2;
   --color-grayApp-100: #B3B9C4;
+  --color-saveBtn:#0C66E4
 
 }
 
@@ -141,5 +145,19 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* styles for droppableList Components */
+  .gapTask{
+     @apply w-full flex relative flex-row items-center p-1 h-2 opacity-0 transition-opacity cursor-pointer;
+  }
+  .gapTask:hover{
+    @apply opacity-100 delay-150
+  }
+  .borderGapTask{
+    @apply flex-1/2 border-t-2 border-dashed border-gray-500
+  }
+  .btnGapTask{
+    @apply   gap-0 p-0 rounded-none border-1 text-primary flex justify-center items-center cursor-pointer h-5 w-5 bg-white
   }
 }

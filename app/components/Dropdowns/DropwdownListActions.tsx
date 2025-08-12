@@ -11,7 +11,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EllipsisHorizontalIcon, PencilIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-export default function DropdownListActions({ list }: { list: List }) {
+interface params{
+    list:List,
+    addCardAction:()=>void
+}
+
+export default function DropdownListActions({list,addCardAction}:params) {
     const {updateList}=useListTaskContext();
     const changeColorList=(list:List,color:string)=>{
         updateList(list,{color:color})
@@ -36,7 +41,7 @@ export default function DropdownListActions({ list }: { list: List }) {
                             </Button>
                         </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuItem >
+                    <DropdownMenuItem onClick={()=>{addCardAction()}}>
                         Add card
                     </DropdownMenuItem>
                     <DropdownMenuItem >

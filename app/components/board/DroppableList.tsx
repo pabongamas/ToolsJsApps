@@ -8,6 +8,7 @@ import {
   EllipsisHorizontalIcon,
   PlusCircleIcon,
   PlusIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,7 +32,7 @@ export default function DroppableList({ list }: { list: List }) {
     updateAddingCardTask,
     stopAddingCardTask,
     addNewTaskToListByCard,
-    updateList
+    updateList,
   } = useListTaskContext();
   const { setNodeRef } = useDroppable({
     id: list.id,
@@ -52,6 +53,8 @@ export default function DroppableList({ list }: { list: List }) {
   );
 
   const [addNewCard, SetAddNewCard] = useState<boolean>(false);
+  const [addNewCardBetwTasks, SetAddNewCardBetwTasks] = useState<boolean>(false);
+  const [insertPosition, setInsertPosition] = useState<number | null>(null);
   const [editingTitleListField, SetEditingTitleListField] =
     useState<boolean>(false);
 
@@ -84,13 +87,23 @@ export default function DroppableList({ list }: { list: List }) {
   );
   // Handler that i want drop when  i ckick outside list, always verify if the card that is adding it has written in  the card something
   //this method works when you click outside o type  KEY ENTER
-  const finishAdding = () => {
-    if (addNewCard && addNewCardTaskList?.belongListId === list.id) {
-      if (addNewCardTaskList.title !== "") {
-        addNewTaskToListByCard();
+  const finishAdding = (isBtwTask = false, isClosing = false) => {
+    if (!isBtwTask) {
+      if (addNewCard && addNewCardTaskList?.belongListId === list.id) {
+        if (addNewCardTaskList.title !== "" && !isClosing) {
+          addNewTaskToListByCard(null);
+        }
+        stopAddingCardTask();
+        SetAddNewCard(false);
       }
-      stopAddingCardTask();
-      SetAddNewCard(false);
+    } else {
+      if (addNewCardBetwTasks && addNewCardTaskList?.belongListId === list.id) {
+        if (addNewCardTaskList.title !== "" && !isClosing) {
+          addNewTaskToListByCard(insertPosition);
+        }
+        stopAddingCardTask();
+        SetAddNewCardBetwTasks(false);
+      }
     }
   };
 
@@ -110,6 +123,22 @@ export default function DroppableList({ list }: { list: List }) {
       document.removeEventListener("mousedown", onClickOutside);
     };
   }, [addNewCard, addNewCardTaskList]);
+  useEffect(() => {
+    if (!addNewCardBetwTasks) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        finishAdding(true);
+        setInsertPosition(null)
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+    };
+  }, [addNewCardBetwTasks, addNewCardTaskList]);
 
   //control  input edit  title of list
   useEffect(() => {
@@ -140,7 +169,12 @@ export default function DroppableList({ list }: { list: List }) {
               {list.title}
             </h2>
           </div>
-            <DropdownListActions list={list}/>
+          <DropdownListActions list={list} addCardAction={() => {
+            const objNewCardTask = createTaskObj(list);
+            startAddingCardTask(objNewCardTask);
+            setInsertPosition(0);
+            SetAddNewCardBetwTasks(true);
+          }} />
           <div></div>
         </div>
       ) : (
@@ -164,15 +198,80 @@ export default function DroppableList({ list }: { list: List }) {
         </div>
       )}
 
-      {list.tasks.map((task: Task) => (
-        <TaskDragable key={`${task.id}`} task={task} listId={list.id} />
+      {list.tasks.map((task: Task, index) => (
+        <>
+          <TaskDragable key={`${task.id}`} task={task} listId={list.id} />
+          {list.tasks[index + 1] !== undefined && insertPosition !== index + 1 && (
+            <>
+              <div className="gapTask ">
+                <div className="borderGapTask"></div>
+                <div>
+                  <Button
+                    variant={"link"}
+                    size={"sm"}
+                    className="btnGapTask h-5"
+                    onClick={() => {
+                      const objNewCardTask = createTaskObj(list);
+                      startAddingCardTask(objNewCardTask);
+                      setInsertPosition(index + 1);
+                      SetAddNewCardBetwTasks(true);
+                    }}
+                  >
+                    <PlusIcon className="w-0.5 h-0.5" />
+                  </Button>
+                </div>
+                <div className="borderGapTask"></div>
+              </div>
+            </>
+          )}
+          {addNewCardBetwTasks && !addNewCard &&
+            insertPosition === index + 1 &&
+            addNewCardTaskList?.belongListId === list.id &&(
+              <>
+                <div className={` p-1 cursor-pointer transform `}>
+                  <Textarea
+                    autoFocus
+                    onChange={(e) => {
+                      debouncedUpdate(e.target.value); // call to  updateAddingCardTask
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        finishAdding(true);
+                        setInsertPosition(null)
+                      }
+                    }}
+                    defaultValue={
+                      addNewCardTaskList?.belongListId === list.id
+                        ? addNewCardTaskList.title
+                        : ""
+                    }
+                    placeholder="Enter a title or paste a link"
+                    className="bg-white resize-none h-12 focus-visible:border-ring focus-visible:ring-ring/0"
+                  />
+                </div>
+                <div className="flex items-center p-1 gap-2 ">
+                  <Button onClick={() => { finishAdding(true, false); setInsertPosition(null) }} variant={"save"}>Add card inter</Button>
+                  <Button
+                    variant={"none"}
+                    className="hover:bg-black/10 cursor-pointer"
+                    onClick={() => { finishAdding(true, true); setInsertPosition(null) }}
+                  >
+                    <XMarkIcon className="w-5" />
+                  </Button>
+                </div>
+              </>
+            )}
+        </>
       ))}
+
+
       {!addNewCard &&
         (addNewCardTaskList === null ||
           addNewCardTaskList.belongListId !== list.id) && (
           <div className={` p-1 cursor-pointer transform `}>
             <div
-              className="p-1 flex gap-1"
+              className="p-1 flex gap-1 hover:bg-black/10 rounded-md"
               style={{ color: list.color, filter: "brightness(50%)" }}
               onClick={() => {
                 const objNewCardTask = createTaskObj(list);
@@ -185,28 +284,42 @@ export default function DroppableList({ list }: { list: List }) {
             </div>
           </div>
         )}
-      {addNewCard || addNewCardTaskList?.belongListId === list.id ? (
-        <div className={` p-1 cursor-pointer transform `}>
-          <Textarea
-            autoFocus
-            onChange={(e) => {
-              debouncedUpdate(e.target.value); // call to  updateAddingCardTask
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                finishAdding();
+      {addNewCard && !addNewCardBetwTasks && addNewCardTaskList?.belongListId === list.id ? (
+        <>
+          <div className={` p-1 cursor-pointer transform `}>
+            <Textarea
+              autoFocus
+              onChange={(e) => {
+                debouncedUpdate(e.target.value); // call to  updateAddingCardTask
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  finishAdding();
+                }
+              }}
+              defaultValue={
+                addNewCardTaskList?.belongListId === list.id
+                  ? addNewCardTaskList.title
+                  : ""
               }
-            }}
-            defaultValue={
-              addNewCardTaskList?.belongListId === list.id
-                ? addNewCardTaskList.title
-                : ""
-            }
-            placeholder="Enter a title or paste a link"
-            className="bg-white resize-none h-12 focus-visible:border-ring focus-visible:ring-ring/0"
-          />
-        </div>
+              placeholder="Enter a title or paste a link"
+              className="bg-white resize-none h-12 focus-visible:border-ring focus-visible:ring-ring/0"
+            />
+          </div>
+          <div className="flex items-center p-1 gap-2 ">
+            <Button onClick={() => { finishAdding() }} variant={"save"}>Add card</Button>
+            <Button
+              variant={"none"}
+              className="hover:bg-black/10 cursor-pointer"
+              onClick={() => {
+                finishAdding(false, true)
+              }}
+            >
+              <XMarkIcon className="w-5" />
+            </Button>
+          </div>
+        </>
       ) : null}
     </div>
   );

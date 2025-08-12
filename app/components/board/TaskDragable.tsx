@@ -3,7 +3,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { Task } from "../../types/typesBoard";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CheckIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import {
   Tooltip,
@@ -47,29 +47,29 @@ export default function TaskDragable({
   const baseDot =
     "w-3 h-3 mr-1 rounded-full transition-colors duration-1000 ease-in-out cursor-pointer z-40"
   const completedDot = "bg-green-500";
-  const hoverDot = "bg-white border border-gray-400";
+  const hoverDot = "bg-white border border-gray-400 transition duration-1000 ease-in-out  hover:scale-105";
   return (
     <div
       key={`taskDragable-${task.id}`}
       className={`
     p-1 
     cursor-grab 
-    transform ${itsOverlay ? "rotate-6" : ""}`}
+    transform pb-0 pt-0 ${itsOverlay ? "rotate-6" : ""}`}
       ref={setNodeRef}
       style={style}
       {...listeners}
       {...attributes}
     >
       <div
-        className="border-2 p-1 pl-2 bg-white border-white shadow-gray-400  shadow-sm rounded-md"
+        className={`border-2 p-1 pl-2 bg-white  shadow-gray-400  shadow-sm rounded-md ${isHoveredTask? "border-blue-500":"border-white"}`}
         onMouseEnter={() => setIsHoveredTask(true)}
         onMouseLeave={() => setIsHoveredTask(false)}
-        
+        onClick={() => setTaskToDialog(task,listId)}
       >
-        <div className="flex items-center">
+        <div className="flex items-center ">
           <div
             title={task.completed ? "Mark imcomplete" : "Mark complete"}
-            className={`${baseDot} ${task.completed ? completedDot : isHoveredTask ? hoverDot : ""
+            className={`${baseDot} ${task.completed ? completedDot : isHoveredTask ? hoverDot : "hidden"
               }`}
             onClick={() => changeStateTask(task, !task.completed, listId)}
           >
@@ -79,10 +79,16 @@ export default function TaskDragable({
               </div>
             )}
           </div>
-          <span onClick={() => setTaskToDialog(task)} className="transition-all duration-1000 ease-in-out">
+          <span  className="transition-all duration-1000 ease-in-out">
             {task.title}
           </span>
+         
         </div>
+         {task.description!=="" && <div>
+            <div title="This card has a description">
+                  <DocumentTextIcon className="w-3" />
+            </div>
+            </div>}
       </div>
       
     </div>
