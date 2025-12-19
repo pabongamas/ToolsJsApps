@@ -198,6 +198,46 @@ export default function DroppableList({ list }: { list: List }) {
         </div>
       )}
 
+      {/* Show text area at the beginning of the list if insertPosition is 0 */}
+      {addNewCardBetwTasks && !addNewCard &&
+        insertPosition === 0 &&
+        addNewCardTaskList?.belongListId === list.id && (
+          <>
+            <div className={` p-1 cursor-pointer transform `}>
+              <Textarea
+                autoFocus
+                onChange={(e) => {
+                  debouncedUpdate(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    finishAdding(true);
+                    setInsertPosition(null)
+                  }
+                }}
+                defaultValue={
+                  addNewCardTaskList?.belongListId === list.id
+                    ? addNewCardTaskList.title
+                    : ""
+                }
+                placeholder="Enter a title or paste a link"
+                className="bg-white resize-none h-12 focus-visible:border-ring focus-visible:ring-ring/0"
+              />
+            </div>
+            <div className="flex items-center p-1 gap-2 ">
+              <Button onClick={() => { finishAdding(true, false); setInsertPosition(null) }} variant={"save"}>Add card</Button>
+              <Button
+                variant={"none"}
+                className="hover:bg-black/10 cursor-pointer"
+                onClick={() => { finishAdding(true, true); setInsertPosition(null) }}
+              >
+                <XMarkIcon className="w-5" />
+              </Button>
+            </div>
+          </>
+        )}
+
       {list.tasks.map((task: Task, index) => (
         <>
           <TaskDragable key={`${task.id}`} task={task} listId={list.id} />
@@ -226,7 +266,7 @@ export default function DroppableList({ list }: { list: List }) {
           )}
           {addNewCardBetwTasks && !addNewCard &&
             insertPosition === index + 1 &&
-            addNewCardTaskList?.belongListId === list.id &&(
+            addNewCardTaskList?.belongListId === list.id && (
               <>
                 <div className={` p-1 cursor-pointer transform `}>
                   <Textarea
@@ -251,7 +291,7 @@ export default function DroppableList({ list }: { list: List }) {
                   />
                 </div>
                 <div className="flex items-center p-1 gap-2 ">
-                  <Button onClick={() => { finishAdding(true, false); setInsertPosition(null) }} variant={"save"}>Add card inter</Button>
+                  <Button onClick={() => { finishAdding(true, false); setInsertPosition(null) }} variant={"save"}>Add card </Button>
                   <Button
                     variant={"none"}
                     className="hover:bg-black/10 cursor-pointer"
